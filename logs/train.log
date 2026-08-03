@@ -1,0 +1,65 @@
+
+========== LOADING DATASET ==========
+
+Original dataset shape: (7043, 21)
+
+========== PREPROCESSING ==========
+
+
+========== PREPROCESSING ==========
+
+customerID removed
+Converted TotalCharges to numeric
+
+Missing values after conversion
+gender               0
+SeniorCitizen        0
+Partner              0
+Dependents           0
+tenure               0
+PhoneService         0
+MultipleLines        0
+InternetService      0
+OnlineSecurity       0
+OnlineBackup         0
+DeviceProtection     0
+TechSupport          0
+StreamingTV          0
+StreamingMovies      0
+Contract             0
+PaperlessBilling     0
+PaymentMethod        0
+MonthlyCharges       0
+TotalCharges        11
+Churn                0
+dtype: int64
+
+Removed 11 rows
+Dataset encoded
+Final dataset shape: (7032, 31)
+Processed dataset shape: (7032, 31)
+
+========== FEATURES / TARGET ==========
+
+Number of features: 30
+
+========== TRAIN TEST SPLIT ==========
+
+Training samples: 5625
+Testing samples: 1407
+
+========== MODEL TRAINING ==========
+
+Model training completed
+
+========== MODEL METRICS ==========
+
+Accuracy : 0.7889
+Precision: 0.6288
+Recall   : 0.5027
+F1 Score : 0.5587
+
+Model logged to MLflow successfully
+
+========== TRAINING COMPLETED ==========
+
