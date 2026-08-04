@@ -218,7 +218,37 @@ mlflow.set_experiment(
 # Start MLflow Run
 # ---------------------------------------------------------
 
-with mlflow.start_run():
+with mlflow.start_run(
+    run_name="RandomForest_Baseline"
+):
+    # ---------------------------------------------------------
+    # MLflow Tags
+    # ---------------------------------------------------------
+
+    mlflow.set_tag(
+        "Model",
+        "Random Forest Baseline"
+    )
+
+    mlflow.set_tag(
+        "Dataset",
+        "Telco Customer Churn"
+    )
+
+    mlflow.set_tag(
+        "Author",
+        "Sabitha Manoj"
+    )
+
+    mlflow.set_tag(
+        "Framework",
+        "Scikit-Learn"
+    )
+
+    mlflow.set_tag(
+        "Project",
+        "MLflow Model Versioning"
+    )
 
 
     logging.info(
@@ -381,9 +411,33 @@ with mlflow.start_run():
     # Log Model to MLflow
     # -----------------------------------------------------
 
-    mlflow.sklearn.log_model(
-        model,
-        "customer_churn_model"
+    model_info = mlflow.sklearn.log_model(
+        sk_model=model,
+        name="CustomerChurnModel"
+    )
+
+    logging.info(
+        "Model URI: %s",
+        model_info.model_uri
+    )
+
+    # -----------------------------------------------------
+    # Register Model
+    # -----------------------------------------------------
+
+    registered_model = mlflow.register_model(
+        model_uri=model_info.model_uri,
+        name="CustomerChurnModel"
+    )
+
+    logging.info(
+        "Registered Model Name : %s",
+        registered_model.name
+    )
+
+    logging.info(
+        "Registered Version    : %s",
+        registered_model.version
     )
 
 

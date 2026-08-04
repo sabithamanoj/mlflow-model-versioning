@@ -58,6 +58,9 @@ Accuracy : 0.7889
 Precision: 0.6288
 Recall   : 0.5027
 F1 Score : 0.5587
+Model URI: models:/m-0133191f144344d4920b36a145a97826
+Registered Model Name : CustomerChurnModel
+Registered Version    : 2
 
 Model logged to MLflow successfully
 
