@@ -1,4 +1,9 @@
 
+========== LOADING REGISTERED MODEL ==========
+
+Loading model: models:/CustomerChurnModel/1
+Model loaded successfully
+
 ========== LOADING DATA ==========
 
 
@@ -36,11 +41,10 @@ dtype: int64
 Removed 11 rows
 Dataset encoded
 Final dataset shape: (7032, 31)
+Test samples: 1407
 
 ========== CONFUSION MATRIX ==========
 
-Saved confusion matrix: C:\Users\Sucess\PycharmProjects\mlflow-model-versioning\artifacts\confusion_matrix.png
-Saved classification report
-Saved feature importance
 
-Evaluation completed successfully
+========== EVALUATION COMPLETED ==========
+

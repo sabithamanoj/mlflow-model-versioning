@@ -1,15 +1,29 @@
 """
 evaluate.py
 
-Evaluates the trained customer churn model.
+Evaluates the registered MLflow model.
 
-Generates:
+Workflow:
 
-1. Confusion matrix
-2. Feature importance plot
-3. Classification report
-
-and logs them as MLflow artifacts.
+MLflow Model Registry
+        |
+        v
+CustomerChurnModel Version 1
+        |
+        v
+Load Test Data
+        |
+        v
+Preprocess
+        |
+        v
+Prediction
+        |
+        v
+Evaluation Artifacts
+        |
+        v
+Log artifacts to MLflow
 """
 
 
@@ -34,9 +48,6 @@ from sklearn.metrics import (
     confusion_matrix,
     classification_report
 )
-
-
-from sklearn.ensemble import RandomForestClassifier
 
 
 from preprocess import preprocess_data
@@ -68,11 +79,6 @@ ARTIFACT_DIR.mkdir(
 )
 
 
-
-# ---------------------------------------------------------
-# Logging configuration
-# ---------------------------------------------------------
-
 LOG_DIR = PROJECT_ROOT / "logs"
 
 LOG_DIR.mkdir(
@@ -80,17 +86,69 @@ LOG_DIR.mkdir(
 )
 
 
+
+# ---------------------------------------------------------
+# Logging
+# ---------------------------------------------------------
+
 logging.basicConfig(
+
     filename=LOG_DIR / "evaluate.log",
+
     level=logging.INFO,
+
     filemode="w",
+
     format="%(message)s",
+
     force=True
+
 )
 
 
 logging.getLogger().addHandler(
     logging.StreamHandler()
+)
+
+
+
+# ---------------------------------------------------------
+# MLflow Model Registry Configuration
+# ---------------------------------------------------------
+
+MODEL_NAME = "CustomerChurnModel"
+
+MODEL_VERSION = 1
+
+
+MODEL_URI = (
+    f"models:/{MODEL_NAME}/{MODEL_VERSION}"
+)
+
+
+
+# ---------------------------------------------------------
+# Load registered model
+# ---------------------------------------------------------
+
+logging.info(
+    "\n========== LOADING REGISTERED MODEL ==========\n"
+)
+
+
+logging.info(
+    "Loading model: %s",
+    MODEL_URI
+)
+
+
+model = mlflow.sklearn.load_model(
+    MODEL_URI
+)
+
+
+logging.info(
+    "Model loaded successfully"
 )
 
 
@@ -111,14 +169,22 @@ df = pd.read_csv(
 
 
 # ---------------------------------------------------------
-# Preprocess dataset
+# Preprocessing
 # ---------------------------------------------------------
+
+logging.info(
+    "\n========== PREPROCESSING ==========\n"
+)
+
 
 df = preprocess_data(
     df
 )
+
+
+
 # ---------------------------------------------------------
-# Split features and target
+# Prepare features and target
 # ---------------------------------------------------------
 
 X = df.drop(
@@ -134,7 +200,13 @@ y = df[
 
 
 
-X_train, X_test, y_train, y_test = train_test_split(
+# ---------------------------------------------------------
+# Create test data
+#
+# Same split used during training
+# ---------------------------------------------------------
+
+_, X_test, _, y_test = train_test_split(
 
     X,
 
@@ -150,34 +222,15 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 
 
-# ---------------------------------------------------------
-# Train model
-#
-# NOTE:
-# Later we will load the MLflow model instead.
-# For now we reproduce the model.
-# ---------------------------------------------------------
-
-model = RandomForestClassifier(
-
-    n_estimators=100,
-
-    max_depth=10,
-
-    random_state=42
-
-)
-
-
-model.fit(
-    X_train,
-    y_train
+logging.info(
+    "Test samples: %d",
+    len(X_test)
 )
 
 
 
 # ---------------------------------------------------------
-# Predictions
+# Prediction
 # ---------------------------------------------------------
 
 predictions = model.predict(
@@ -237,10 +290,12 @@ plt.title(
 )
 
 
+
 cm_path = (
     ARTIFACT_DIR /
     "confusion_matrix.png"
 )
+
 
 
 plt.savefig(
@@ -253,20 +308,16 @@ plt.close()
 
 
 
-logging.info(
-    "Saved confusion matrix: %s",
-    cm_path
-)
-
-
-
 # ---------------------------------------------------------
 # Classification Report
 # ---------------------------------------------------------
 
 report = classification_report(
+
     y_test,
+
     predictions
+
 )
 
 
@@ -286,91 +337,102 @@ with open(
     )
 
 
-logging.info(
-    "Saved classification report"
-)
-
-
 
 # ---------------------------------------------------------
 # Feature Importance
 # ---------------------------------------------------------
 
-importance = pd.DataFrame(
+if hasattr(
+    model,
+    "feature_importances_"
+):
 
-    {
+    importance = pd.DataFrame(
 
-        "feature": X.columns,
+        {
 
-        "importance": model.feature_importances_
+            "feature": X.columns,
 
-    }
+            "importance": model.feature_importances_
 
-)
+        }
 
-
-importance = importance.sort_values(
-
-    by="importance",
-
-    ascending=False
-
-)
+    )
 
 
+    importance = importance.sort_values(
 
-plt.figure(
-    figsize=(10,6)
-)
+        by="importance",
 
+        ascending=False
 
-sns.barplot(
-
-    data=importance.head(15),
-
-    x="importance",
-
-    y="feature"
-
-)
+    )
 
 
-plt.title(
-    "Top 15 Feature Importance"
-)
+    plt.figure(
+        figsize=(10,6)
+    )
 
 
-importance_path = (
-    ARTIFACT_DIR /
-    "feature_importance.png"
-)
+    sns.barplot(
+
+        data=importance.head(15),
+
+        x="importance",
+
+        y="feature"
+
+    )
 
 
-plt.savefig(
-    importance_path,
-    bbox_inches="tight"
-)
+    plt.title(
+        "Top 15 Feature Importance"
+    )
 
 
-plt.close()
+    importance_path = (
+        ARTIFACT_DIR /
+        "feature_importance.png"
+    )
+
+
+    plt.savefig(
+
+        importance_path,
+
+        bbox_inches="tight"
+
+    )
+
+
+    plt.close()
 
 
 
-logging.info(
-    "Saved feature importance"
-)
+else:
+
+    importance_path = None
 
 
 
 # ---------------------------------------------------------
-# MLflow Logging
+# Log artifacts to MLflow
 # ---------------------------------------------------------
 
 with mlflow.start_run(
 
-    run_name="random_forest_evaluation"
+    run_name="RandomForest_Model_Evaluation"
 
 ):
+
+
+    mlflow.set_tag(
+
+        "Evaluation_Model",
+
+        MODEL_URI
+
+    )
 
 
     mlflow.log_artifact(
@@ -383,11 +445,14 @@ with mlflow.start_run(
     )
 
 
-    mlflow.log_artifact(
-        importance_path
-    )
+    if importance_path:
+
+        mlflow.log_artifact(
+            importance_path
+        )
+
 
 
 logging.info(
-    "\nEvaluation completed successfully"
+    "\n========== EVALUATION COMPLETED ==========\n"
 )
