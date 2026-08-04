@@ -1,23 +1,39 @@
 """
 train_models.py
 
-Multi-model experimentation using MLflow.
+Multi-model experimentation with MLflow.
 
-Models compared:
+Workflow:
 
-1. Random Forest
-2. Logistic Regression
-3. Gradient Boosting
+Dataset
+   |
+   v
+Preprocessing
+   |
+   v
+Train multiple models
 
+   - Random Forest
+   - Logistic Regression
+   - Gradient Boosting
 
-Each model:
+   |
+   v
 
-- gets its own MLflow run
-- logs parameters
-- logs metrics
-- logs model artifact
-- registers model version
+MLflow Tracking
+
+   |
+   v
+
+Select best model using F1 score
+
+   |
+   v
+
+Register best model in MLflow Model Registry
+
 """
+
 
 
 from pathlib import Path
@@ -46,13 +62,9 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
 
     accuracy_score,
-
     precision_score,
-
     recall_score,
-
     f1_score,
-
     roc_auc_score
 
 )
@@ -62,9 +74,10 @@ from preprocess import preprocess_data
 
 
 
-# ---------------------------------------------------------
+
+# =========================================================
 # Paths
-# ---------------------------------------------------------
+# =========================================================
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -76,8 +89,11 @@ DATA_PATH = (
 )
 
 
+LOG_DIR = (
+    PROJECT_ROOT /
+    "logs"
+)
 
-LOG_DIR = PROJECT_ROOT / "logs"
 
 LOG_DIR.mkdir(
     exist_ok=True
@@ -85,9 +101,10 @@ LOG_DIR.mkdir(
 
 
 
-# ---------------------------------------------------------
+
+# =========================================================
 # Logging
-# ---------------------------------------------------------
+# =========================================================
 
 logging.basicConfig(
 
@@ -110,9 +127,10 @@ logging.getLogger().addHandler(
 
 
 
-# ---------------------------------------------------------
-# Load data
-# ---------------------------------------------------------
+
+# =========================================================
+# Load Dataset
+# =========================================================
 
 logging.info(
     "\n========== LOADING DATASET ==========\n"
@@ -124,10 +142,17 @@ df = pd.read_csv(
 )
 
 
+logging.info(
+    "Original dataset shape: %s",
+    df.shape
+)
 
-# ---------------------------------------------------------
+
+
+
+# =========================================================
 # Preprocessing
-# ---------------------------------------------------------
+# =========================================================
 
 logging.info(
     "\n========== PREPROCESSING ==========\n"
@@ -139,15 +164,24 @@ df = preprocess_data(
 )
 
 
+logging.info(
+    "Processed dataset shape: %s",
+    df.shape
+)
 
-# ---------------------------------------------------------
-# Features and target
-# ---------------------------------------------------------
+
+
+
+# =========================================================
+# Features and Target
+# =========================================================
 
 X = df.drop(
+
     columns=[
         "Churn_Yes"
     ]
+
 )
 
 
@@ -157,9 +191,17 @@ y = df[
 
 
 
-# ---------------------------------------------------------
-# Train test split
-# ---------------------------------------------------------
+logging.info(
+    "Number of features: %s",
+    X.shape[1]
+)
+
+
+
+
+# =========================================================
+# Train Test Split
+# =========================================================
 
 X_train, X_test, y_train, y_test = train_test_split(
 
@@ -176,7 +218,6 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 
-
 logging.info(
     "Training samples: %s",
     len(X_train)
@@ -190,9 +231,10 @@ logging.info(
 
 
 
-# ---------------------------------------------------------
-# Models
-# ---------------------------------------------------------
+
+# =========================================================
+# Define Models
+# =========================================================
 
 models = {
 
@@ -239,19 +281,38 @@ models = {
 
 
 
-# ---------------------------------------------------------
+
+# =========================================================
+# Best Model Tracking
+# =========================================================
+
+best_model = None
+
+best_model_name = None
+
+best_f1 = 0
+
+best_run_id = None
+
+
+
+
+# =========================================================
 # MLflow Experiment
-# ---------------------------------------------------------
+# =========================================================
 
 mlflow.set_experiment(
+
     "Customer_Churn_Experiment"
+
 )
 
 
 
-# ---------------------------------------------------------
-# Train each model
-# ---------------------------------------------------------
+
+# =========================================================
+# Train Models
+# =========================================================
 
 for model_name, model in models.items():
 
@@ -277,12 +338,12 @@ for model_name, model in models.items():
 
         run_name=model_name
 
-    ):
+    ) as run:
 
 
 
         # -------------------------------
-        # Training
+        # Train
         # -------------------------------
 
         model.fit(
@@ -294,6 +355,10 @@ for model_name, model in models.items():
         )
 
 
+
+        # -------------------------------
+        # Predict
+        # -------------------------------
 
         predictions = model.predict(
 
@@ -307,6 +372,7 @@ for model_name, model in models.items():
             X_test
 
         )[:,1]
+
 
 
 
@@ -391,8 +457,9 @@ for model_name, model in models.items():
 
 
 
+
         # -------------------------------
-        # MLflow Logging
+        # MLflow Tags
         # -------------------------------
 
         mlflow.set_tag(
@@ -413,6 +480,20 @@ for model_name, model in models.items():
         )
 
 
+        mlflow.set_tag(
+
+            "Project",
+
+            "MLflow Model Versioning"
+
+        )
+
+
+
+
+        # -------------------------------
+        # Log Parameters
+        # -------------------------------
 
         mlflow.log_params(
 
@@ -421,6 +502,11 @@ for model_name, model in models.items():
         )
 
 
+
+
+        # -------------------------------
+        # Log Metrics
+        # -------------------------------
 
         mlflow.log_metrics(
 
@@ -442,6 +528,11 @@ for model_name, model in models.items():
 
 
 
+
+        # -------------------------------
+        # Log Model
+        # -------------------------------
+
         mlflow.sklearn.log_model(
 
             model,
@@ -452,18 +543,94 @@ for model_name, model in models.items():
 
 
 
-    logging.info(
 
-        "%s completed",
+        # -------------------------------
+        # Best Model Selection
+        # -------------------------------
 
-        model_name
+        if f1 > best_f1:
 
-    )
+
+            best_f1 = f1
+
+            best_model = model
+
+            best_model_name = model_name
+
+            best_run_id = run.info.run_id
+
+
+
+            logging.info(
+
+                "New best model: %s",
+
+                model_name
+
+            )
+
+
+
+# =========================================================
+# Register Best Model
+# =========================================================
+
+logging.info(
+    "\n========== BEST MODEL ==========\n"
+)
+
+
+logging.info(
+    "Best Model: %s",
+    best_model_name
+)
+
+
+logging.info(
+    "Best F1 Score: %.4f",
+    best_f1
+)
+
+
+
+best_model_uri = (
+
+    f"runs:/{best_run_id}/model"
+
+)
+
+
+
+registered_model = mlflow.register_model(
+
+    model_uri=best_model_uri,
+
+    name="CustomerChurnModel"
+
+)
 
 
 
 logging.info(
 
-    "\n========== ALL MODELS COMPLETED ==========\n"
+    "Registered Model Name: %s",
 
+    registered_model.name
+
+)
+
+
+logging.info(
+
+    "Registered Version: %s",
+
+    registered_model.version
+
+)
+
+
+
+
+logging.info(
+    "\n========== ALL MODELS COMPLETED ==========\n"
 )

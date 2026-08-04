@@ -1,6 +1,7 @@
 
 ========== LOADING DATASET ==========
 
+Original dataset shape: (7043, 21)
 
 ========== PREPROCESSING ==========
 
@@ -36,6 +37,8 @@ dtype: int64
 Removed 11 rows
 Dataset encoded
 Final dataset shape: (7032, 31)
+Processed dataset shape: (7032, 31)
+Number of features: 30
 Training samples: 5625
 Testing samples: 1407
 
@@ -48,7 +51,7 @@ Precision: 0.6288
 Recall   : 0.5027
 F1 Score : 0.5587
 ROC AUC  : 0.8345
-RandomForest_Baseline completed
+New best model: RandomForest_Baseline
 
 ================================
 Training LogisticRegression_Baseline
@@ -59,7 +62,7 @@ Precision: 0.6456
 Recall   : 0.5749
 F1 Score : 0.6082
 ROC AUC  : 0.8365
-LogisticRegression_Baseline completed
+New best model: LogisticRegression_Baseline
 
 ================================
 Training GradientBoosting_Baseline
@@ -70,7 +73,13 @@ Precision: 0.6378
 Recall   : 0.5321
 F1 Score : 0.5802
 ROC AUC  : 0.8407
-GradientBoosting_Baseline completed
+
+========== BEST MODEL ==========
+
+Best Model: LogisticRegression_Baseline
+Best F1 Score: 0.6082
+Registered Model Name: CustomerChurnModel
+Registered Version: 3
 
 ========== ALL MODELS COMPLETED ==========
 
