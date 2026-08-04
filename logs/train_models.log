@@ -1,0 +1,76 @@
+
+========== LOADING DATASET ==========
+
+
+========== PREPROCESSING ==========
+
+
+========== PREPROCESSING ==========
+
+customerID removed
+Converted TotalCharges to numeric
+
+Missing values after conversion
+gender               0
+SeniorCitizen        0
+Partner              0
+Dependents           0
+tenure               0
+PhoneService         0
+MultipleLines        0
+InternetService      0
+OnlineSecurity       0
+OnlineBackup         0
+DeviceProtection     0
+TechSupport          0
+StreamingTV          0
+StreamingMovies      0
+Contract             0
+PaperlessBilling     0
+PaymentMethod        0
+MonthlyCharges       0
+TotalCharges        11
+Churn                0
+dtype: int64
+
+Removed 11 rows
+Dataset encoded
+Final dataset shape: (7032, 31)
+Training samples: 5625
+Testing samples: 1407
+
+================================
+Training RandomForest_Baseline
+================================
+
+Accuracy : 0.7889
+Precision: 0.6288
+Recall   : 0.5027
+F1 Score : 0.5587
+ROC AUC  : 0.8345
+RandomForest_Baseline completed
+
+================================
+Training LogisticRegression_Baseline
+================================
+
+Accuracy : 0.8031
+Precision: 0.6456
+Recall   : 0.5749
+F1 Score : 0.6082
+ROC AUC  : 0.8365
+LogisticRegression_Baseline completed
+
+================================
+Training GradientBoosting_Baseline
+================================
+
+Accuracy : 0.7953
+Precision: 0.6378
+Recall   : 0.5321
+F1 Score : 0.5802
+ROC AUC  : 0.8407
+GradientBoosting_Baseline completed
+
+========== ALL MODELS COMPLETED ==========
+
