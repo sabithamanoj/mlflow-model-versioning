@@ -120,10 +120,12 @@ MODEL_NAME = "CustomerChurnModel"
 
 MODEL_VERSION = 1
 
-
+'''
 MODEL_URI = (
     f"models:/{MODEL_NAME}/{MODEL_VERSION}"
 )
+'''
+MODEL_URI = "models:/CustomerChurnModel@champion"
 
 
 

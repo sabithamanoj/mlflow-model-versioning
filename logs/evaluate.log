@@ -1,7 +1,7 @@
 
 ========== LOADING REGISTERED MODEL ==========
 
-Loading model: models:/CustomerChurnModel/1
+Loading model: models:/CustomerChurnModel@champion
 Model loaded successfully
 
 ========== LOADING DATA ==========
